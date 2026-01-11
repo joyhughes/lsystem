@@ -20,11 +20,30 @@ function rotateVector(vec: Vector3, axis: Vector3, angleDeg: number): Vector3 {
   return vec.clone().applyQuaternion(quaternion);
 }
 
+// Simple seeded PRNG (mulberry32)
+function createRng(seed: number): () => number {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export interface TurtleParams {
+  angle: number;
+  stepLength: number;
+  lengthRandomness: number;
+  angleRandomness: number;
+  seed: number;
+}
+
 export function interpretLSystem(
   lstring: string,
-  angle: number,
-  stepLength: number
+  params: TurtleParams
 ): LineSegment[] {
+  const { angle, stepLength, lengthRandomness, angleRandomness, seed } = params;
+  const random = createRng(seed);
   const segments: LineSegment[] = [];
   const stack: TurtleState[] = [];
 
@@ -35,58 +54,77 @@ export function interpretLSystem(
     right: new Vector3(1, 0, 0),
   };
 
+  // Helper to get randomized values
+  const getLength = () => {
+    const variation = (random() - 0.5) * 2 * lengthRandomness;
+    return stepLength * (1 + variation);
+  };
+
+  const getAngle = (baseAngle: number) => {
+    const variation = (random() - 0.5) * 2 * angleRandomness;
+    return baseAngle * (1 + variation);
+  };
+
   for (const char of lstring) {
     switch (char) {
       case 'F': {
         // Move forward and draw
         const start = state.position.clone();
+        const len = getLength();
         state.position = state.position
           .clone()
-          .add(state.heading.clone().multiplyScalar(stepLength));
+          .add(state.heading.clone().multiplyScalar(len));
         segments.push({ start, end: state.position.clone() });
         break;
       }
       case 'f': {
         // Move forward without drawing
+        const len = getLength();
         state.position = state.position
           .clone()
-          .add(state.heading.clone().multiplyScalar(stepLength));
+          .add(state.heading.clone().multiplyScalar(len));
         break;
       }
       case '+': {
         // Yaw left (turn left around up axis)
-        state.heading = rotateVector(state.heading, state.up, angle);
-        state.right = rotateVector(state.right, state.up, angle);
+        const a = getAngle(angle);
+        state.heading = rotateVector(state.heading, state.up, a);
+        state.right = rotateVector(state.right, state.up, a);
         break;
       }
       case '-': {
         // Yaw right (turn right around up axis)
-        state.heading = rotateVector(state.heading, state.up, -angle);
-        state.right = rotateVector(state.right, state.up, -angle);
+        const a = getAngle(angle);
+        state.heading = rotateVector(state.heading, state.up, -a);
+        state.right = rotateVector(state.right, state.up, -a);
         break;
       }
       case '^': {
         // Pitch up (rotate around right axis)
-        state.heading = rotateVector(state.heading, state.right, angle);
-        state.up = rotateVector(state.up, state.right, angle);
+        const a = getAngle(angle);
+        state.heading = rotateVector(state.heading, state.right, a);
+        state.up = rotateVector(state.up, state.right, a);
         break;
       }
       case '&': {
         // Pitch down (rotate around right axis)
-        state.heading = rotateVector(state.heading, state.right, -angle);
-        state.up = rotateVector(state.up, state.right, -angle);
+        const a = getAngle(angle);
+        state.heading = rotateVector(state.heading, state.right, -a);
+        state.up = rotateVector(state.up, state.right, -a);
         break;
       }
       case '\\': {
         // Roll left (rotate around heading axis)
-        state.up = rotateVector(state.up, state.heading, angle);
-        state.right = rotateVector(state.right, state.heading, angle);
+        const a = getAngle(angle);
+        state.up = rotateVector(state.up, state.heading, a);
+        state.right = rotateVector(state.right, state.heading, a);
         break;
       }
       case '/': {
         // Roll right (rotate around heading axis)
-        state.up = rotateVector(state.up, state.heading, -angle);
-        state.right = rotateVector(state.right, state.heading, -angle);
+        const a = getAngle(angle);
+        state.up = rotateVector(state.up, state.heading, -a);
+        state.right = rotateVector(state.right, state.heading, -a);
         break;
       }
       case '[': {

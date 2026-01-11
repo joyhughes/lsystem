@@ -127,6 +127,53 @@ export function ControlPanel({ config, onChange }: ControlPanelProps) {
       </div>
 
       <div className="control-section">
+        <h3>Randomness</h3>
+
+        <div className="control-row">
+          <span className="control-label">Length</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={config.lengthRandomness}
+            onChange={(e) => updateConfig({ lengthRandomness: parseFloat(e.target.value) })}
+          />
+          <span className="slider-value">{Math.round(config.lengthRandomness * 100)}%</span>
+        </div>
+
+        <div className="control-row">
+          <span className="control-label">Angle</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={config.angleRandomness}
+            onChange={(e) => updateConfig({ angleRandomness: parseFloat(e.target.value) })}
+          />
+          <span className="slider-value">{Math.round(config.angleRandomness * 100)}%</span>
+        </div>
+
+        <div className="control-row">
+          <span className="control-label">Seed</span>
+          <input
+            type="number"
+            value={config.seed}
+            onChange={(e) => updateConfig({ seed: parseInt(e.target.value) || 0 })}
+            style={{ width: '80px' }}
+          />
+          <button
+            className="secondary"
+            onClick={() => updateConfig({ seed: Math.floor(Math.random() * 100000) })}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            Randomize
+          </button>
+        </div>
+      </div>
+
+      <div className="control-section">
         <h3>Commands Reference</h3>
         <div style={{ fontSize: '0.75rem', color: '#a0a0a0', lineHeight: 1.6 }}>
           <div><code>F</code> - Draw forward</div>
