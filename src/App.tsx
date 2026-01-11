@@ -23,7 +23,13 @@ function App() {
     }
 
     const expanded = expandLSystem(config.axiom, validRules, config.iterations);
-    return interpretLSystem(expanded, config.angle, config.stepLength);
+    return interpretLSystem(expanded, {
+      angle: config.angle,
+      stepLength: config.stepLength,
+      lengthRandomness: config.lengthRandomness,
+      angleRandomness: config.angleRandomness,
+      seed: config.seed,
+    });
   }, [config]);
 
   return (

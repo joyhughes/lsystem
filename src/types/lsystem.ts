@@ -12,6 +12,9 @@ export interface LSystemConfig {
   angle: number; // degrees
   stepLength: number;
   color: string;
+  lengthRandomness: number; // 0-1, percentage of variation
+  angleRandomness: number; // 0-1, percentage of variation
+  seed: number; // random seed for reproducibility
 }
 
 export interface TurtleState {
@@ -36,4 +39,7 @@ export const DEFAULT_CONFIG: LSystemConfig = {
   angle: 25,
   stepLength: 0.5,
   color: '#4ade80',
+  lengthRandomness: 0.2,
+  angleRandomness: 0.2,
+  seed: 12345,
 };
